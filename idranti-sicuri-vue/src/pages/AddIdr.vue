@@ -4,61 +4,71 @@
         <hr>
         <div id="tables">
             <div id="left-column">
+                <BaseCard>
                 <table class="ins_table" id="info_table">
                     <tr>
                         <td class="keys">Latitudine</td>
-                        <td class="vals"><input id="info_id_lat" type="text" v-model="coords[0]"></td>
+                        <td class="vals">
+                            <BaseInput id="info_id_lat" type="text" v-model="latitudine.value" @blur="clearValidation('latitudine')" :isValid="latitudine.isValid" errorMsg="La latitudine è obbligatoria." />
+                        </td>
                     </tr>
                     <tr>
                         <td class="keys">Longitudine</td>
-                        <td class="vals"><input id="info_id_lon" type="text" v-model="coords[1]"></td>
+                        <td class="vals">
+                            <BaseInput id="info_id_lon" type="text" v-model="longitudine.value" @blur="clearValidation('longitudine')" :isValid="longitudine.isValid" errorMsg="La longitudine è obbligatoria." />
+                        </td>
                     </tr>
                     <tr>
                         <td class="keys">Immagini</td>
                         <td>
-                            <input type="file" id="insert_img" name="immagini" accept=".jpeg,.jpg,.png" multiple
+                            <BaseInput type="file" id="insert_img" name="immagini" accept=".jpeg,.jpg,.png" multiple
                                 @change="previewImages(event)" placeholder="imgs_input" title="Carica immagini"
-                                aria-label="Carica immagini" style="display: none;">
+                                aria-label="Carica immagini" style="display: none;"/>
                             <label for="insert_img" class="btn btn-secondary" id="upload_label">Carica immagini</label>
-                            <div id="preview" style="display: flex; gap: 8px; margin-top: 8px;"></div>
                         </td>
                     </tr>
                     <tr>
                         <td class="keys">Operativo</td>
                         <td>
-                            <div style="display: flex; flex-direction: column; align-items: flex-start;">
-                                <label><input type="radio" name="operativo" id="operative" value="si"> Sì</label>
-                                <label><input type="radio" name="operativo" id="n_operative" value="no"> No</label>
-                                <label><input type="radio" name="operativo" id="unk_operative" value="non_lo_so"> Non lo
-                                    so</label>
+                            <div style="display: flex; flex-direction: row; align-items: center; gap: 1.5em;">
+                                <label style="display: flex; align-items: center; gap: 0.3em;"><input  type="radio" name="operativo" id="operative" value="si" v-model="operativo.value" @blur="clearValidation('operativo')" /> Sì</label>
+                                <label style="display: flex; align-items: center; gap: 0.3em;"><input type="radio" name="operativo" id="n_operative" value="no" v-model="operativo.value" @blur="clearValidation('operativo')" /> No</label>
+                                <label style="display: flex; align-items: center; gap: 0.3em;"><input type="radio" name="operativo" id="unk_operative" value="no" v-model="operativo.value" @blur="clearValidation('operativo')" /> Non lo so</label>
                             </div>
+                            <p v-if="!operativo.isValid" style="color: red; font-size: 0.9em; margin: 0.2em 0 0 0;">Seleziona lo stato operativo.</p>
                         </td>
                     </tr>
                     <tr>
                         <td class="keys">Campo 1</td>
-                        <td class="vals"><input id="camp_1" type="text"></td>
+                        <td class="vals">
+                            <BaseInput id="camp_1" type="text" v-model="camp1.value" @blur="clearValidation('camp1')" :isValid="camp1.isValid" errorMsg="Campo 1 obbligatorio." />
+                        </td>
                     </tr>
                     <tr>
                         <td class="keys">Campo 2</td>
-                        <td class="vals"><input id="camp_2" type="text"></td>
+                        <td class="vals">
+                            <BaseInput id="camp_2" type="text" v-model="camp2.value" @blur="clearValidation('camp2')" :isValid="camp2.isValid" errorMsg="Campo 2 obbligatorio." />
+                        </td>
                     </tr>
                     <tr>
                         <td class="keys">Campo 3</td>
-                        <td class="vals"><input id="camp_3" type="text"></td>
+                        <td class="vals">
+                            <BaseInput id="camp_3" type="text" v-model="camp3.value" @blur="clearValidation('camp3')" :isValid="camp3.isValid" errorMsg="Campo 3 obbligatorio." />
+                        </td>
                     </tr>
                 </table>
-
+                
                 <div id="form-buttons">
                     <button class=" btn-secondary" @click="window.location.href = '../index.html'">Annulla</button>
-                    <button id="conferma" class="btn-primary" @click="insert_data()">Conferma</button>
+                    <button id="conferma" class="btn-primary" @click="insert_data">Conferma</button>
                 </div>
-            </div>
-
+            </BaseCard>
+        </div>
 
             <table class="ins_table" id="select_on_map">
                 <tr>
                     <td>
-                        <Map type="add-idr" ref="map" />
+                        <Map type="add-idr" ref="map" @coords-selected="onCoordsSelected" />
                     </td>
                 </tr>
             </table>
@@ -75,15 +85,18 @@ export default {
     },
     data() {
         return {
-            coords: [null, null],
             imgs: [],
-            operative: true,
-            fields: {
-                camp1: '',
-                camp2: '',
-                camp3: ''
-            }
+            operativo: { value: '', isValid: true },
+            latitudine: { value: '', isValid: true },
+            longitudine: { value: '', isValid: true },
+            camp1: { value: '', isValid: true },
+            camp2: { value: '', isValid: true },
+            camp3: { value: '', isValid: true },
         }
+    },
+    watch: {
+        'latitudine.value': 'updatePreviewMarker',
+        'longitudine.value': 'updatePreviewMarker',
     },
     methods: {
         previewImages(event) {
@@ -114,68 +127,70 @@ export default {
                     const img = document.createElement('img');
                     img.src = e.target.result;
                     img.style.maxWidth = '60px';
-                    img.style.maxHeight = '60px';
+                    img.style.maxHeight = '60px'; 
                     img.style.objectFit = 'cover';
                     preview.appendChild(img);
                 };
                 reader.readAsDataURL(file);
             });
         },
-        insert_data() {
-            this.$refs.map.addPin(this.coords, this.imgs, this.operative, this.fields);
-            this.$refs.map.flyTo(this.coords);
-            //this.$router.push('/');
+        validateForm() {
+            let valid = true;
+            if (this.latitudine.value === '') {
+                this.latitudine.isValid = false;
+                valid = false;
+            }
+            if (this.longitudine.value === '') {
+                this.longitudine.isValid = false;
+                valid = false;
+            }
+            if (this.camp1.value.trim() === '') {
+                this.camp1.isValid = false;
+                valid = false;
+            }
+            if (this.camp2.value.trim() === '') {
+                this.camp2.isValid = false;
+                valid = false;
+            }
+            if (this.camp3.value.trim() === '') {
+                this.camp3.isValid = false;
+                valid = false;
+            }
+            if (this.operativo.value === '') {
+                this.operativo.isValid = false;
+                valid = false;
+            }
+            return valid;
         },
-        // previewImages(event) {
-        //     const preview = document.getElementById('preview');
-        //     preview.innerHTML = '';
-
-        //     const files = event.target.files;
-        //     if (!files) return;
-
-        //     // limite 3 file
-        //     const maxFiles = 3;
-        //     if (files.length > maxFiles) {
-        //         alert(`Puoi caricare al massimo ${maxFiles} immagini.`);
-        //         event.target.value = ''; // Resetta l'input file
-        //         return;
-        //     }
-
-        //     // controllo tipo file
-        //     const allowedTypes = ["image/jpeg", "image/jpg", "image/png"];
-        //     Array.from(files).forEach(file => {
-        //         if (!allowedTypes.includes(file.type)) {
-        //             console.warn("Formato non supportato:", file.type);
-        //             return;
-        //         }
-
-        //         const reader = new FileReader();
-        //         reader.onload = function (e) {
-        //             const img = document.createElement('img');
-        //             img.src = e.target.result;
-        //             img.style.maxWidth = '60px';
-        //             img.style.maxHeight = '60px';
-        //             img.style.objectFit = 'cover';
-        //             preview.appendChild(img);
-        //         };
-        //         reader.readAsDataURL(file);
-        //     });
-        // },
-
-        //  insert_data() {
-        //             var operative = document.getElementById("operative").checked;
-        //             camp1 = document.getElementById("camp_1").value;
-        //             camp2 = document.getElementById("camp_2").value;
-        //             camp3 = document.getElementById("camp_3").value;
-        //             console.log("inserimento dati");
-        //             console.log("ID: " + id);
-        //             console.log("Latitudine: " + lat);
-        //             console.log("Longitudine: " + lon);
-        //             console.log("Operativo: " + operative);
-        //             console.log("Campo 1: " + camp1);
-        //             console.log("Campo 2: " + camp2);
-        //             console.log("Campo 3: " + camp3);
-        //         }
+        insert_data() {
+            if (!this.validateForm()) {
+                return;
+            }
+            const coords = [this.latitudine.value, this.longitudine.value];
+            const fields = {
+                camp1: this.camp1.value,
+                camp2: this.camp2.value,
+                camp3: this.camp3.value
+            };
+            this.$refs.map.addPin(coords, this.imgs, this.operativo.value, fields);
+            this.$refs.map.flyTo(coords);
+        },
+        clearValidation(field) {
+            this[field].isValid = true;
+        },
+        updatePreviewMarker() {
+            const lat = parseFloat(this.latitudine.value);
+            const lon = parseFloat(this.longitudine.value);
+            if (!isNaN(lat) && !isNaN(lon)) {
+                this.$refs.map.setPreviewMarker([lat, lon]);
+            } else {
+                this.$refs.map.removePreviewMarker();
+            }
+        },
+        onCoordsSelected(coords) {
+            this.latitudine.value = coords[0].toFixed(6);
+            this.longitudine.value = coords[1].toFixed(6);
+        }
     }
 }
 </script>
@@ -186,35 +201,30 @@ body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-.ins_table {
-    margin: auto;
-    border-radius: 15px;
-    box-shadow: 15px 15px 15px rgba(0, 0, 0, 0.05);
-    border: 1px solid gray;
-    border-width: 1px;
-    padding: 20px;
-    margin-top: 30px;
-}
+
 
 #tables {
     display: flex;
     width: 1500px;
     margin: auto;
+    align-items: center;
 }
 
 #mappa {
     width: 100%;
     height: 100%;
+    padding: 0px;
     border-radius: 12px;
 }
 
 #select_on_map {
+    margin-top: auto;
+    margin-bottom: auto;
     width: 900px;
     height: 600px;
-    padding: 0px;
-    background-color: white;
     border-radius: 15px;
     box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.1);
+
 }
 
 .keys,
@@ -254,5 +264,10 @@ body {
 
 #upload_label {
     font-weight: normal;
+}
+
+/* RIMOSSO: .form-control, .form-control.invalid, .error-msg */
+input[type='radio'] {
+  accent-color: #ff0000;
 }
 </style>

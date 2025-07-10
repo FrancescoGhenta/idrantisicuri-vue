@@ -1,5 +1,6 @@
 <template>  
-  <input
+  <div class="form-control" :class="{ invalid: !isValid }">
+    <input
       :id="id"
       :type="type"
       :placeholder="placeholder"
@@ -10,6 +11,8 @@
       @focus="$emit('focus', $event)"
       class="base-input__input"
     />
+    <p v-if="!isValid && errorMsg" class="error-msg">{{ errorMsg }}</p>
+  </div>
 </template>
 
 <script>
@@ -27,17 +30,38 @@ export default {
       type: Boolean,
       default: false
     },
-    id: String
+    id: String,
+    isValid: {
+      type: Boolean,
+      default: true
+    },
+    errorMsg: {
+      type: String,
+      default: ''
+    }
   }
 }
 </script>
 
 <style scoped>
+.form-control {
+  margin: 0.15rem 0;
+}
+.form-control.invalid input {
+  border: 1px solid red !important;
+}
+.error-msg {
+  color: red;
+  font-size: 0.9em;
+  margin: 0.2em 0 0 0;
+}
 .base-input {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  background-color: red;
+  width: 100%;
+  height: 80%;
+  margin: 10px;
 }
 .base-input__input {
   border-radius: 8px;
@@ -46,8 +70,14 @@ export default {
   font-size: 1rem;
   outline: none;
   transition: border 0.2s;
+  width: 100%;
+  border-radius: 10px;
+  caret-color: #ff0000;
 }
 .base-input__input:focus {
-  border: 1.5px solid #ff0000;
+  border: 1px solid #ff0000;
+}
+.base-input__input[type='radio'] {
+  accent-color: #ff0000;
 }
 </style> 

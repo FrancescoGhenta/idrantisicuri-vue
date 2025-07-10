@@ -27,12 +27,20 @@ export default {
     return {
       map: null,
       geolocPerm: null,
-      geoloc: []
+      geoloc: [],
+      previewMarker: null
     }
   },
   mounted() {
     this.initMap();
     this.loadPins();
+    if (this.type === 'add-idr') {
+      this.$nextTick(() => {
+        this.map.on('click', (e) => {
+          this.$emit('coords-selected', [e.latlng.lat, e.latlng.lng]);
+        });
+      });
+    }
   },
   beforeUnmount() {
   if (this.map) {
@@ -183,6 +191,21 @@ export default {
         }.bind(this));
       } catch (e) {
         console.error("Errore nel recuperare la posizione:", e);
+      }
+    },
+    setPreviewMarker(coords) {
+      if (!this.map) return;
+      if (this.previewMarker) {
+        this.previewMarker.setLatLng(coords);
+      } else {
+        this.previewMarker = L.marker(coords, { opacity: 0.7 }).addTo(this.map);
+      }
+      this.map.flyTo(coords, 15);
+    },
+    removePreviewMarker() {
+      if (this.previewMarker) {
+        this.map.removeLayer(this.previewMarker);
+        this.previewMarker = null;
       }
     }
   }
