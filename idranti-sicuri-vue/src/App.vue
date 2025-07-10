@@ -1,11 +1,12 @@
 <template>
   <TheNavBar />
-  <Map />
+  <router-view />
 </template>
 
 <script>
-import Map from './components/Map.vue';
-import TheNavBar from './components/TheNavBar.vue';
+import TheNavBar from './components/layouts/TheNavBar.vue';
+
+
 
 
 
@@ -21,15 +22,11 @@ document.title = 'Idranti - ver Alpha';
 
 
 <style>
-body {
-    margin: 0;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+html, body, #app {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
-
-#mappa {
-  height: 95vh;
-  position: relative;
-}
-
 
 </style>
