@@ -28,26 +28,36 @@ export default {
       map: null,
       geolocPerm: null,
       geoloc: [],
-      previewMarker: null
+      previewMarker: null,
+      justFlewToPin: false
     }
   },
   mounted() {
     this.initMap();
     this.loadPins();
-    if (this.type === 'add-idr') {
-      this.$nextTick(() => {
+    this.$nextTick(() => {
+      const lastId = this.$store.state.map.lastViewedPin;
+      if (lastId) {
+        const pin = this.$store.state.map.pins.find(p => p.id === lastId);
+        if (pin) {
+          this.flyTo([pin.location_lat, pin.location_lon]);
+          this.justFlewToPin = true;
+        }
+        this.$store.commit('map/setLastViewedPin', null);
+      }
+      if (this.type === 'add-idr') {
         this.map.on('click', (e) => {
           this.$emit('coords-selected', [e.latlng.lat, e.latlng.lng]);
         });
-      });
-    }
+      }
+    });
   },
   beforeUnmount() {
-  if (this.map) {
-    this.map.remove();
-    this.map = null;
-  }
-},
+    if (this.map) {
+      this.map.remove();
+      this.map = null;
+    }
+  },
   methods: {
     async initMap() {
       this.map = L.map('mappa', { minZoom: 1, maxZoom: 20 }).setView([45.438913, 10.994400], 13);
@@ -119,7 +129,7 @@ export default {
     },
 
     addPin(coords, imgs, operative, fields) {
-      this.pins.push({
+      this.$store.state.map.pins.push({
         id: (this.pins.length + 1).toString().padStart(4, '0'),
         location_lat: coords[0],
         location_lon: coords[1],
@@ -127,6 +137,7 @@ export default {
         operative: operative,
         fields: fields
       });
+      this.loadPins();
     },
 
     loadPins() {
@@ -147,11 +158,9 @@ export default {
         shadowSize: [41, 41]
       });
 
-    
-
-      this.pins.forEach((item) => {
+      this.$store.state.map.pins.forEach((item) => {
         let popup = `
-          <div class="custom-leaflet-popup">
+          <div class="custom-leaflet-popup" onclick="this.map.flyTo([${item.location_lat}, ${item.location_lon}], 15)">
             <div class="popup-bar"></div>
             <h1 id=\"id_pin\">${item.id}</h1>
             <p>Coordinate: ${item.location_lat}, ${item.location_lon}</p>
@@ -160,75 +169,85 @@ export default {
         if (this.geolocPerm) {
           popup += `<a href=\"https://www.google.com/maps?saddr=${this.geoloc[0]},${this.geoloc[1]}&daddr=${item.location_lat},${item.location_lon}\"><button class=\"btn-primary\" id=\"button_info_pin\">Apri in Maps</button></a>`;
         } else {
-          popup += `<a href=\"#\"><button disabled class=\"btn-primary\" id=\"button_info_pin\">Apri in Maps</button></a>`;
+          popup += `<a href=\"#\" style="text-decoration: none;"><button disabled class=\"btn-primary\" id=\"button_info_pin\">Apri in Maps</button></a>`;
         }
-        popup += `<a href=\"/details/${item.id}\"><button class=\"btn-primary\" id=\"button_info_pin\">Vedi dettagli</button></a>`;
+        popup += `<a href=\"/details/${item.id}\" style="text-decoration: none;"><button class=\"btn-primary\" id=\"button_info_pin\">Vedi dettagli</button></a>`;
         popup += `</div>`;
         let icon = item.operative ? redPin : greyPin;
-        L.marker([item.location_lat, item.location_lon], { icon }).addTo(this.map).bindPopup(popup);
+        const marker = L.marker([item.location_lat, item.location_lon], { icon }).addTo(this.map);
+        if (this.type !== 'add-idr') { marker.bindPopup(popup) }
+        marker.on('click', () => {
+          this.map.flyTo([item.location_lat, item.location_lon], 15);
+        });
       });
-    },
-    loadUserMarker() {
-      const userPin = new L.Icon({
-        iconUrl: '../assets/userMarker.png',
-        iconSize: [20, 20],
-        iconAnchor: [10, 10],
-      });
-      try {
-        let userMarker = null;
-        this.map.locate({ watch: true, setView: false });
-        this.map.on('locationfound', function (e) {
-          if (!userMarker) {
-            userMarker = L.marker(e.latlng, { icon: userPin }).addTo(this.map);
-            if (this.type !== 'add-idr') {
-              this.map.flyTo(e.latlng, 15);
-            } else {
-             
-            }
-          } else {
-            userMarker.setLatLng(e.latlng);
+  },
+  loadUserMarker() {
+    const userPin = new L.Icon({
+      iconUrl: '../assets/userMarker.png',
+      iconSize: [20, 20],
+      iconAnchor: [10, 10],
+    });
+    try {
+      let userMarker = null;
+      this.map.locate({ watch: true, setView: false });
+      this.map.on('locationfound', function (e) {
+        if (!userMarker) {
+          userMarker = L.marker(e.latlng, { icon: userPin }).addTo(this.map);
+          if (this.type !== 'add-idr' && !this.justFlewToPin) {
+            this.map.flyTo(e.latlng, 15);
           }
-        }.bind(this));
-      } catch (e) {
-        console.error("Errore nel recuperare la posizione:", e);
-      }
-    },
-    setPreviewMarker(coords) {
-      if (!this.map) return;
-      if (this.previewMarker) {
-        this.previewMarker.setLatLng(coords);
-      } else {
-        this.previewMarker = L.marker(coords, { opacity: 0.7 }).addTo(this.map);
-      }
-      this.map.flyTo(coords, 15);
-    },
-    removePreviewMarker() {
-      if (this.previewMarker) {
-        this.map.removeLayer(this.previewMarker);
-        this.previewMarker = null;
-      }
+          this.justFlewToPin = false;
+        } else {
+          userMarker.setLatLng(e.latlng);
+        }
+      }.bind(this));
+    } catch (e) {
+      console.error("Errore nel recuperare la posizione:", e);
+    }
+  },
+  setPreviewMarker(coords) {
+    if (!this.map) return;
+    if (this.previewMarker) {
+      this.previewMarker.setLatLng(coords);
+    } else {
+      this.previewMarker = L.marker(coords, { opacity: 0.7 }).addTo(this.map);
+    }
+    this.map.flyTo(coords, 19);
+  },
+  removePreviewMarker() {
+    if (this.previewMarker) {
+      this.map.removeLayer(this.previewMarker);
+      this.previewMarker = null;
     }
   }
+}
 }
 </script>
 
 <style>
-html, body, #app {
+html,
+body,
+#app {
   height: 100%;
-  margin: 0;
+  margin: 10;
   padding: 0;
 }
+
 #mappa {
   height: 95vh;
   width: 100%;
   position: relative;
 }
+
 .operativo-si {
   color: #0a0;
   font-weight: bold;
+  font-size: 17px;
 }
+
 .operativo-no {
   color: #d00;
   font-weight: bold;
+  font-size: 17px;
 }
 </style>

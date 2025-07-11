@@ -150,5 +150,10 @@ export default {
         ],
         geolocPerm: null,
         geoloc: []
+    },
+    mutations: {
+       addIdr(state, idr) {
+        state.pins.push(idr);
+       }
     }
 }

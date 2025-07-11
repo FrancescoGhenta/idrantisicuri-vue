@@ -37,6 +37,8 @@ export default {
     background-color: #ff0000;
     color: white;
     border: none;
+    font-style: none;
+    text-decoration: none;
 }
 
 .btn-primary:disabled {
@@ -55,6 +57,8 @@ export default {
     padding: 3px 10px;
     margin: 0 4px;
     font-weight: bold;
+    font-style: none;
+    text-decoration: none;
     color: #000000;
 }
 
@@ -68,6 +72,18 @@ export default {
     cursor: not-allowed;
     opacity: 0.6;
     box-shadow: none;
+}
+
+@media (max-width: 700px) {
+  .btn-primary, .btn-secondary {
+    width: 90vw;
+    max-width: 300px;
+    font-size: 1.1rem;
+    padding: 12px 0;
+    margin: 1.2rem auto 0 auto;
+    display: block;
+    text-align: center;
+  }
 }
 
 </style>

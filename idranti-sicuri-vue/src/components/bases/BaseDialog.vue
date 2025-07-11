@@ -61,7 +61,7 @@ header {
     color: white;
     width: 100%;
     padding: 1rem;
-    background: rgb(144, 8, 8);
+    background: #bb0000;
     box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
     backdrop-filter: blur(10px);
     color: rgb(255, 255, 255);

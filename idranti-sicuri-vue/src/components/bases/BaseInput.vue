@@ -46,6 +46,8 @@ export default {
 <style scoped>
 .form-control {
   margin: 0.15rem 0;
+  width: 100%;
+  box-sizing: border-box;
 }
 .form-control.invalid input {
   border: 1px solid red !important;
@@ -73,11 +75,33 @@ export default {
   width: 100%;
   border-radius: 10px;
   caret-color: #ff0000;
+  box-sizing: border-box;
 }
 .base-input__input:focus {
   border: 1px solid #ff0000;
 }
 .base-input__input[type='radio'] {
   accent-color: #ff0000;
+}
+@media (max-width: 600px) {
+  .base-input__input, .form-control {
+    width: 94vw !important;
+    max-width: 94vw !important;
+    margin-left: auto;
+    margin-right: auto;
+    box-sizing: border-box;
+  }
+  .base-input__input {
+    font-size: 1.15rem;
+    padding: 14px 12px;
+    min-height: 44px;
+  }
+  .error-msg {
+    font-size: 1.05em;
+    margin: 0.3em 0 0 0;
+  }
+  .form-control {
+    margin: 0.25rem 0;
+  }
 }
 </style> 

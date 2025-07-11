@@ -1,14 +1,14 @@
 <template>
     <div>
-      <TheHeader title="Modifica idrante " />
-      <p>Modifica l'idrante {{ id }}</p>
+      <TheHeader title="Elimina idrante " />
+      <p>Elimina l'idrante {{ id }}</p>
       <base-button class="btn-primary" @click="goDetails">Torna ai dettagli</base-button>
     </div>
   </template>
   
   <script>
   export default {
-    name: 'EditIdr',
+    name: 'DeleteIdr',
     props: {
         id: {
             type: String,
